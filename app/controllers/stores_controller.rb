@@ -34,21 +34,29 @@ class StoresController < ApplicationController
       {
         id: store["_id"],
         name: store["name"],
-        latitude: store["_id"] === "5c61d43b73f8ee2254b5411f" ? store["latitude"] / 10000000.0 : store["latitude"],
-        longitude: store["_id"] === "5c61d43b73f8ee2254b5411f" ? store["longitude"] / 10000000.0 : store["longitude"], 
+        latitude: store["latitude"],
+        longitude: store["longitude"],
         address: store["address"],
         allday: store["services"].include?("3"),
         atm: store["services"].include?("2"),
-        distance: distance([store["latitude"], store["longitude"]], current_location)
+        distance: store["latitude"] ? distance([store["latitude"], store["longitude"]], current_location) : nil
       }
     end
 
-    render json: result.sort_by { |store|  store[:distance] }
+    buggy_store = result.find{ |store| store[:id] === "5c61d43b73f8ee2254b5411f" }
+    buggy_store[:latitude] = fix_coords(buggy_store[:latitude])
+    buggy_store[:longitude] = fix_coords(buggy_store[:longitude])
+    buggy_store[:distance] = distance([buggy_store[:latitude], buggy_store[:longitude]], current_location) 
+    result.reject!{ |store| store[:id] == "5c61d43b73f8ee2254b5411f" }
+    result << buggy_store
+
+    render json: result.reject{ |store| store[:distance] == nil }.sort_by { |store|  store[:distance] }
   end
 
   private
 
   def distance loc1, loc2
+    p loc1, loc2
     rad_per_deg = Math::PI/180  # PI / 180
     rkm = 6371                  # Earth radius in kilometers
     rm = rkm * 1000             # Radius in meters
@@ -63,6 +71,10 @@ class StoresController < ApplicationController
     c = 2 * Math::atan2(Math::sqrt(a), Math::sqrt(1-a))
   
     rm * c # Delta in meters
+  end
+
+  def fix_coords coord
+    coord / (10 ** (coord.abs.to_s.size - 2)).to_f
   end
 
 end
