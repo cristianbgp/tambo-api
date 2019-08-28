@@ -24,6 +24,9 @@ class StoresController < ApplicationController
   end
 
   def nearest_tambo
+    # FIXING
+    # VENEZUELA-C9 (done)
+    # GAVIOTAS
     current_location = [params[:currentLatitude].to_f, params[:currentLongitude].to_f]
     url = "https://tambomas.pe/public/api/stores"
     data = JSON.parse(open(url).read)
@@ -31,8 +34,8 @@ class StoresController < ApplicationController
       {
         id: store["_id"],
         name: store["name"],
-        latitude: store["latitude"],
-        longitude: store["longitude"], 
+        latitude: store["_id"] === "5c61d43b73f8ee2254b5411f" ? store["latitude"] / 10000000.0 : store["latitude"],
+        longitude: store["_id"] === "5c61d43b73f8ee2254b5411f" ? store["longitude"] / 10000000.0 : store["longitude"], 
         address: store["address"],
         allday: store["services"].include?("3"),
         atm: store["services"].include?("2"),
