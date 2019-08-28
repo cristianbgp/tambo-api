@@ -24,8 +24,7 @@ class StoresController < ApplicationController
   end
 
   def nearest_tambo
-    current_location = params[:currentLocation]
-
+    current_location = [params[:currentLatitude].to_f, params[:currentLongitude].to_f]
     url = "https://tambomas.pe/public/api/stores"
     data = JSON.parse(open(url).read)
     result = data["stores"].map do |store|
