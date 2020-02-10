@@ -24,9 +24,6 @@ class StoresController < ApplicationController
   end
 
   def nearest_tambo
-    # FIXING
-    # VENEZUELA-C9 (done)
-    # GAVIOTAS
     current_location = [params[:currentLatitude].to_f, params[:currentLongitude].to_f]
     url = "https://tambomas.pe/public/api/stores"
     data = JSON.parse(open(url).read)
@@ -43,12 +40,23 @@ class StoresController < ApplicationController
       }
     end
 
-    buggy_store = result.find{ |store| store[:id] === "5c61d43b73f8ee2254b5411f" }
-    buggy_store[:latitude] = fix_coords(buggy_store[:latitude])
-    buggy_store[:longitude] = fix_coords(buggy_store[:longitude])
-    buggy_store[:distance] = distance([buggy_store[:latitude], buggy_store[:longitude]], current_location) 
-    result.reject!{ |store| store[:id] == "5c61d43b73f8ee2254b5411f" }
-    result << buggy_store
+    # FIXING
+    # VENEZUELA-C9 (done) 5c61d43b73f8ee2254b5411f
+    # COLONIAL-C31 (done) 5db20f3e526b6d7ccaa14fae
+    venezula_c9 = result.find{ |store| store[:id] === "5c61d43b73f8ee2254b5411f" }
+    venezula_c9[:latitude] = fix_coords(venezula_c9[:latitude])
+    venezula_c9[:longitude] = fix_coords(venezula_c9[:longitude])
+    venezula_c9[:distance] = distance([venezula_c9[:latitude], venezula_c9[:longitude]], current_location)
+    colonial_c31 = result.find{ |store| store[:id] === "5db20f3e526b6d7ccaa14fae" }
+    colonial_c31[:latitude] = -12.0562
+    colonial_c31[:longitude] = -77.1095
+    colonial_c31[:distance] = distance([colonial_c31[:latitude], colonial_c31[:longitude]], current_location)
+    result.reject! do |store|
+      store[:id] == "5c61d43b73f8ee2254b5411f" ||
+      store[:id] == "5db20f3e526b6d7ccaa14fae"
+    end
+    result << venezula_c9
+    result << colonial_c31
 
     render json: result.reject{ |store| store[:distance] == nil }.sort_by { |store|  store[:distance] }
   end
